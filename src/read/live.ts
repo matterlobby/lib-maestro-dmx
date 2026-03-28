@@ -1,9 +1,12 @@
-import { HttpClient } from "./http.js";
+import { isRecord, toOptionalBoolean, toOptionalNumber, toOptionalString } from "../internal/normalize.js";
+import { HttpClient } from "../transport/http.js";
+import { ReadApi } from "./read-api.js";
 
 export interface LiveSlotState {
   patternId?: string;
   paletteId?: string;
   brightness?: number;
+  excitement?: number;
   background?: number;
   intensity?: number;
   motion?: number;
@@ -36,22 +39,6 @@ interface LiveApiResponse {
   quaternaryParams?: unknown;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function toOptionalString(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
-
-function toOptionalNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-}
-
-function toOptionalBoolean(value: unknown): boolean | undefined {
-  return typeof value === "boolean" ? value : undefined;
-}
-
 function normalizeSlotState(value: unknown): LiveSlotState {
   if (!isRecord(value)) {
     return {};
@@ -61,6 +48,7 @@ function normalizeSlotState(value: unknown): LiveSlotState {
     patternId: toOptionalString(value.patternId),
     paletteId: toOptionalString(value.paletteId),
     brightness: toOptionalNumber(value.brightness),
+    excitement: toOptionalNumber(value.excitement) ?? toOptionalNumber(value.intensity),
     background: toOptionalNumber(value.background),
     intensity: toOptionalNumber(value.intensity),
     motion: toOptionalNumber(value.motion),
@@ -75,31 +63,24 @@ function normalizeSlotState(value: unknown): LiveSlotState {
   };
 }
 
-export class LiveApi {
-  private readonly httpClient: HttpClient;
-  private lastRead: LiveState | undefined;
-
+export class LiveApi extends ReadApi<LiveState, LiveApiResponse> {
   public constructor(httpClient: HttpClient) {
-    this.httpClient = httpClient;
+    super(httpClient);
   }
 
-  public async read(): Promise<LiveState> {
-    const response = await this.httpClient.getJson<LiveApiResponse>("/api/v1/live");
-    const snapshot: LiveState = {
+  protected getPath(): string {
+    return "/api/v1/live";
+  }
+
+  protected normalizeResponse(response: LiveApiResponse, fetchedAt: Date): LiveState {
+    return {
       mode: typeof response.type === "string" ? response.type : "UNKNOWN",
       transition: isRecord(response.transition) ? response.transition : {},
       primary: normalizeSlotState(response.params),
       secondary: normalizeSlotState(response.secondaryParams),
       tertiary: normalizeSlotState(response.tertiaryParams),
       quaternary: normalizeSlotState(response.quaternaryParams),
-      fetchedAt: new Date()
+      fetchedAt
     };
-
-    this.lastRead = snapshot;
-    return snapshot;
-  }
-
-  public getLastRead(): LiveState | undefined {
-    return this.lastRead;
   }
 }

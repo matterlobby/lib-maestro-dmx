@@ -1,19 +1,22 @@
-import { MaestroOscControlApiImpl } from "./control.js";
-import type { LiveGroup, MaestroOscControlApi } from "./control.js";
-import { HttpClient } from "./http.js";
-import { LiveApi } from "./live.js";
-import { OscClient } from "./osc.js";
+import { MaestroOscControlApiImpl } from "./control/osc-control.js";
+import type { LiveGroup, MaestroOscControlApi } from "./control/osc-control.js";
+import { LiveApi } from "./read/live.js";
+import { PatternsApi } from "./read/patterns.js";
+import { HttpClient } from "./transport/http.js";
+import { OscClient } from "./transport/osc.js";
 
 const DEFAULT_OSC_PORT = 7672;
 
-export type { HttpClientOptions } from "./http.js";
-export type { LiveSlotState, LiveState } from "./live.js";
-export type { OscArgument, OscClientOptions, OscMessage, OscResponse } from "./osc.js";
-export type { LiveGroup, MaestroOscControlApi } from "./control.js";
-export { HttpClient } from "./http.js";
-export { LiveApi } from "./live.js";
-export { OscClient, decodeOscMessage, encodeOscMessage } from "./osc.js";
-export { MaestroOscControlApiImpl } from "./control.js";
+export type { LiveGroup, MaestroOscControlApi } from "./control/osc-control.js";
+export type { LiveSlotState, LiveState } from "./read/live.js";
+export type { PatternDefinition, PatternManifest, PatternParameter, PatternsState } from "./read/patterns.js";
+export type { HttpClientOptions } from "./transport/http.js";
+export type { OscArgument, OscClientOptions, OscMessage, OscResponse } from "./transport/osc.js";
+export { MaestroOscControlApiImpl } from "./control/osc-control.js";
+export { LiveApi } from "./read/live.js";
+export { PatternsApi } from "./read/patterns.js";
+export { HttpClient } from "./transport/http.js";
+export { OscClient, decodeOscMessage, encodeOscMessage, oscFloat } from "./transport/osc.js";
 
 export interface MaestroDmxClientOptions {
   host: string;
@@ -26,6 +29,7 @@ export interface MaestroDmxClient {
   osc: OscClient;
   control: MaestroOscControlApi;
   live: LiveApi;
+  patterns: PatternsApi;
   close(): Promise<void>;
 }
 
@@ -34,6 +38,7 @@ class MaestroDmxClientImpl implements MaestroDmxClient {
   public readonly osc: OscClient;
   public readonly control: MaestroOscControlApi;
   public readonly live: LiveApi;
+  public readonly patterns: PatternsApi;
 
   public constructor(options: MaestroDmxClientOptions) {
     this.host = options.host;
@@ -44,6 +49,12 @@ class MaestroDmxClientImpl implements MaestroDmxClient {
     });
     this.control = new MaestroOscControlApiImpl(this.osc);
     this.live = new LiveApi(
+      new HttpClient({
+        host: options.host,
+        protocol: options.protocol
+      })
+    );
+    this.patterns = new PatternsApi(
       new HttpClient({
         host: options.host,
         protocol: options.protocol

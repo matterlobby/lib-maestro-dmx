@@ -1,4 +1,4 @@
-import { oscFloat, OscClient } from "./osc.js";
+import { oscFloat, OscClient } from "../transport/osc.js";
 
 export type LiveGroup = 1 | 2 | 3 | 4;
 

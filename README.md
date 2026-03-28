@@ -104,3 +104,24 @@ await client.control.triggers.toggleEffect();
 npm install
 npm test
 ```
+
+## Live Test
+
+The normal `npm test` run stays local and does not require a MaestroDMX device.
+
+Run the opt-in live integration test explicitly:
+
+```bash
+npm run live-test
+```
+
+It talks to `maestro.local` and runs a fixed verification sequence on group `1`:
+
+- set brightness to `0.37`
+- set excitement to `0.63`
+- set pattern to `Solid Color`
+- set pattern to `Ambient`
+- set palette id to `223`
+- set palette index to `1` and verify that the reported `paletteId` is still `223`
+
+The script polls `/api/v1/live` until each change is visible again. It is intentionally opt-in because it mutates real MaestroDMX state.

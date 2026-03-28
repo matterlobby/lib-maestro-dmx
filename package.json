@@ -22,11 +22,16 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build"
+    "live-test": "tsx test/live-test.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
-    "typescript": "^5.8.2"
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.2",
+    "vitest": "^4.1.2"
   },
   "keywords": [],
   "author": "",

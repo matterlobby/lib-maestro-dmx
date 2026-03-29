@@ -91,4 +91,33 @@ describe("PatternsApi", () => {
     expect(snapshot.manifests).toEqual([]);
     expect(snapshot.fetchedAt).toBeInstanceOf(Date);
   });
+
+  it("provides convenience lookups for manifests, patterns and params", async () => {
+    const api = new PatternsApi({
+      getJson: vi.fn(async () => ({
+        manifests: [
+          {
+            id: "core",
+            name: "Core",
+            patterns: [
+              {
+                id: "wash",
+                name: "Wash",
+                params: [{ param: "brightness" }],
+                advancedParams: [{ param: "allowStrobe" }]
+              }
+            ]
+          }
+        ]
+      }))
+    } as never);
+
+    const snapshot = await api.read();
+
+    expect(api.listPatterns()).toHaveLength(1);
+    expect(api.findManifestById("core", snapshot)?.name).toBe("Core");
+    expect(api.findPatternById("wash")?.name).toBe("Wash");
+    expect(api.findParameter("wash", "allowStrobe")?.param).toBe("allowStrobe");
+    expect(api.findPatternById("missing")).toBeUndefined();
+  });
 });

@@ -1,22 +1,27 @@
 import dgram from "node:dgram";
 
+/** Explicit OSC float wrapper used when a numeric argument must stay a float. */
 export interface OscFloatArgument {
   type: "float";
   value: number;
 }
 
+/** Supported OSC argument types for this transport. */
 export type OscArgument = boolean | number | string | OscFloatArgument;
 
+/** Plain OSC message shape. */
 export interface OscMessage {
   address: string;
   args: OscArgument[];
 }
 
+/** OSC message plus sender metadata captured from UDP responses. */
 export interface OscResponse extends OscMessage {
   remoteAddress: string;
   remotePort: number;
 }
 
+/** Connection options for the OSC UDP transport. */
 export interface OscClientOptions {
   host: string;
   port: number;
@@ -29,6 +34,7 @@ interface ThrottledOscSendState {
   timer: NodeJS.Timeout | undefined;
 }
 
+/** Optional throttling settings for `sendThrottled()`. */
 export interface OscThrottleOptions {
   intervalMs?: number;
 }
@@ -96,6 +102,7 @@ function isOscFloatArgument(argument: OscArgument): argument is OscFloatArgument
   return typeof argument === "object" && argument !== null && argument.type === "float";
 }
 
+/** Creates an explicit OSC float argument. */
 export function oscFloat(value: number): OscFloatArgument {
   return {
     type: "float",
@@ -103,6 +110,7 @@ export function oscFloat(value: number): OscFloatArgument {
   };
 }
 
+/** Encodes a plain OSC message into a UDP payload buffer. */
 export function encodeOscMessage(message: OscMessage): Buffer {
   const address = encodeOscString(message.address);
   const encodedArguments = message.args.map(encodeOscArgument);
@@ -113,6 +121,7 @@ export function encodeOscMessage(message: OscMessage): Buffer {
   return Buffer.concat([address, typeTags, ...payload]);
 }
 
+/** Decodes a plain OSC message from a UDP payload buffer. */
 export function decodeOscMessage(buffer: Buffer): OscMessage {
   let offset = 0;
   const address = decodeOscString(buffer, offset);
@@ -160,6 +169,11 @@ export function decodeOscMessage(buffer: Buffer): OscMessage {
   };
 }
 
+/**
+ * Low-level OSC UDP transport used by the MaestroDMX control API.
+ *
+ * It supports plain sends, per-address throttled sends, and response probing.
+ */
 export class OscClient {
   private static readonly DEFAULT_THROTTLE_MS = 250;
   private readonly host: string;
@@ -174,10 +188,12 @@ export class OscClient {
     this.localPort = options.localPort;
   }
 
+  /** Returns `true` when the UDP socket has already been created and bound. */
   public get connected(): boolean {
     return this.socket !== undefined;
   }
 
+  /** Lazily creates and binds the UDP socket if needed. */
   public async connect(): Promise<void> {
     if (this.socket) {
       return;
@@ -196,6 +212,7 @@ export class OscClient {
     this.socket = socket;
   }
 
+  /** Closes the UDP socket and clears all throttled-send timers. */
   public async close(): Promise<void> {
     this.clearThrottledSendStates();
 
@@ -223,6 +240,7 @@ export class OscClient {
     });
   }
 
+  /** Sends one OSC message immediately. */
   public async send(address: string, ...args: OscArgument[]): Promise<void> {
     const socket = await this.getSocket();
     const message = encodeOscMessage({ address, args });
@@ -239,6 +257,12 @@ export class OscClient {
     });
   }
 
+  /**
+   * Sends an OSC message with per-address leading-and-trailing throttling.
+   *
+   * The first message in a window is sent immediately. The most recent message
+   * inside the active window is queued and sent once at the trailing edge.
+   */
   public async sendThrottled(
     address: string,
     argsOrOptions: OscArgument | OscThrottleOptions,
@@ -281,6 +305,10 @@ export class OscClient {
     }, delayMs);
   }
 
+  /**
+   * Sends one OSC message and collects any decodable OSC responses for a short
+   * time window.
+   */
   public async probe(address: string, args: OscArgument[] = [], timeoutMs = 1000): Promise<OscResponse[]> {
     const socket = await this.getSocket();
     const responses: OscResponse[] = [];

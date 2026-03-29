@@ -1,25 +1,12 @@
-import { isRecord, toOptionalBoolean, toOptionalNumber, toOptionalString } from "../internal/normalize.js";
+import { isRecord } from "../internal/normalize.js";
 import { HttpClient } from "../transport/http.js";
 import { ReadApi } from "./read-api.js";
+import { normalizeSlotState, selectSlotByParamGroup, type SlotState } from "./shared.js";
 
-export interface LiveSlotState {
-  patternId?: string;
-  paletteId?: string;
-  brightness?: number;
-  excitement?: number;
-  background?: number;
-  intensity?: number;
-  motion?: number;
-  speed?: number;
-  energy?: number;
-  variance?: number;
-  attack?: number;
-  decay?: number;
-  motionSpeed?: number;
-  blackout?: boolean;
-  blackoutOnSilence?: boolean;
-}
+/** Slot state for one live fixture group. */
+export interface LiveSlotState extends SlotState {}
 
+/** Snapshot of the current MaestroDMX live state across all four fixture groups. */
 export interface LiveState {
   mode: string;
   transition: Record<string, unknown>;
@@ -39,30 +26,7 @@ interface LiveApiResponse {
   quaternaryParams?: unknown;
 }
 
-function normalizeSlotState(value: unknown): LiveSlotState {
-  if (!isRecord(value)) {
-    return {};
-  }
-
-  return {
-    patternId: toOptionalString(value.patternId),
-    paletteId: toOptionalString(value.paletteId),
-    brightness: toOptionalNumber(value.brightness),
-    excitement: toOptionalNumber(value.excitement) ?? toOptionalNumber(value.intensity),
-    background: toOptionalNumber(value.background),
-    intensity: toOptionalNumber(value.intensity),
-    motion: toOptionalNumber(value.motion),
-    speed: toOptionalNumber(value.speed),
-    energy: toOptionalNumber(value.energy),
-    variance: toOptionalNumber(value.variance),
-    attack: toOptionalNumber(value.attack),
-    decay: toOptionalNumber(value.decay),
-    motionSpeed: toOptionalNumber(value.motionSpeed),
-    blackout: toOptionalBoolean(value.blackout),
-    blackoutOnSilence: toOptionalBoolean(value.blackoutOnSilence)
-  };
-}
-
+/** Reader for `/api/v1/live`. */
 export class LiveApi extends ReadApi<LiveState, LiveApiResponse> {
   public constructor(httpClient: HttpClient) {
     super(httpClient);
@@ -82,5 +46,26 @@ export class LiveApi extends ReadApi<LiveState, LiveApiResponse> {
       quaternary: normalizeSlotState(response.quaternaryParams),
       fetchedAt
     };
+  }
+
+  /** Returns the live slot for one fixture group. */
+  public getGroup(paramGroup: string | number, snapshot?: LiveState): LiveSlotState | undefined {
+    const resolvedSnapshot = this.resolveSnapshot(snapshot);
+
+    if (!resolvedSnapshot) {
+      return undefined;
+    }
+
+    return selectSlotByParamGroup(resolvedSnapshot, paramGroup);
+  }
+
+  /** Returns the active live pattern id for one fixture group. */
+  public getPatternId(paramGroup: string | number, snapshot?: LiveState): string | undefined {
+    return this.getGroup(paramGroup, snapshot)?.patternId;
+  }
+
+  /** Returns the active live palette id for one fixture group. */
+  public getPaletteId(paramGroup: string | number, snapshot?: LiveState): string | undefined {
+    return this.getGroup(paramGroup, snapshot)?.paletteId;
   }
 }

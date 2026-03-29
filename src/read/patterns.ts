@@ -2,6 +2,7 @@ import { isRecord, normalizeArray, toOptionalString } from "../internal/normaliz
 import { HttpClient } from "../transport/http.js";
 import { ReadApi } from "./read-api.js";
 
+/** Describes one configurable pattern parameter in MaestroDMX. */
 export interface PatternParameter {
   param: string;
   name?: string;
@@ -9,6 +10,7 @@ export interface PatternParameter {
   shape?: string[];
 }
 
+/** Full definition of one MaestroDMX pattern. */
 export interface PatternDefinition {
   id: string;
   name: string;
@@ -17,6 +19,7 @@ export interface PatternDefinition {
   advancedParams: PatternParameter[];
 }
 
+/** A named collection of related patterns, such as Maestro or Core patterns. */
 export interface PatternManifest {
   interfaceVersion?: string;
   id: string;
@@ -25,6 +28,7 @@ export interface PatternManifest {
   patterns: PatternDefinition[];
 }
 
+/** Snapshot of the full MaestroDMX pattern catalog. */
 export interface PatternsState {
   manifests: PatternManifest[];
   fetchedAt: Date;
@@ -99,6 +103,7 @@ function normalizePatternManifest(value: unknown): PatternManifest | undefined {
   };
 }
 
+/** Reader for `/api/v1/patterns`. */
 export class PatternsApi extends ReadApi<PatternsState, PatternsApiResponse> {
   public constructor(httpClient: HttpClient) {
     super(httpClient);
@@ -113,5 +118,38 @@ export class PatternsApi extends ReadApi<PatternsState, PatternsApiResponse> {
       manifests: normalizeArray(response.manifests, normalizePatternManifest),
       fetchedAt
     };
+  }
+
+  /** Returns all patterns from every manifest as a flat list. */
+  public listPatterns(snapshot?: PatternsState): PatternDefinition[] {
+    const resolvedSnapshot = this.resolveSnapshot(snapshot);
+
+    if (!resolvedSnapshot) {
+      return [];
+    }
+
+    return resolvedSnapshot.manifests.flatMap((manifest) => manifest.patterns);
+  }
+
+  /** Finds a manifest by its manifest id. */
+  public findManifestById(id: string, snapshot?: PatternsState): PatternManifest | undefined {
+    const resolvedSnapshot = this.resolveSnapshot(snapshot);
+    return resolvedSnapshot?.manifests.find((manifest) => manifest.id === id);
+  }
+
+  /** Finds a pattern by its pattern id. */
+  public findPatternById(id: string, snapshot?: PatternsState): PatternDefinition | undefined {
+    return this.listPatterns(snapshot).find((pattern) => pattern.id === id);
+  }
+
+  /** Finds a regular or advanced parameter definition for one pattern. */
+  public findParameter(patternId: string, param: string, snapshot?: PatternsState): PatternParameter | undefined {
+    const pattern = this.findPatternById(patternId, snapshot);
+
+    if (!pattern) {
+      return undefined;
+    }
+
+    return [...pattern.params, ...pattern.advancedParams].find((entry) => entry.param === param);
   }
 }

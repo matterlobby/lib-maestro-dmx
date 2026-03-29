@@ -43,7 +43,13 @@ describe("LiveApi", () => {
       decay: undefined,
       motionSpeed: undefined,
       blackout: false,
-      blackoutOnSilence: undefined
+      blackoutOnSilence: undefined,
+      allowBlackout: undefined,
+      allowBlinder: undefined,
+      allowStrobe: undefined,
+      allowFog: undefined,
+      allowEffect: undefined,
+      audioReactivity: undefined
     });
     expect(snapshot.secondary).toEqual({
       patternId: undefined,
@@ -60,7 +66,13 @@ describe("LiveApi", () => {
       decay: undefined,
       motionSpeed: 0.25,
       blackout: undefined,
-      blackoutOnSilence: undefined
+      blackoutOnSilence: undefined,
+      allowBlackout: undefined,
+      allowBlinder: undefined,
+      allowStrobe: undefined,
+      allowFog: undefined,
+      allowEffect: undefined,
+      audioReactivity: undefined
     });
     expect(snapshot.tertiary).toEqual({});
     expect(snapshot.quaternary).toEqual({
@@ -78,7 +90,13 @@ describe("LiveApi", () => {
       decay: undefined,
       motionSpeed: undefined,
       blackout: undefined,
-      blackoutOnSilence: true
+      blackoutOnSilence: true,
+      allowBlackout: undefined,
+      allowBlinder: undefined,
+      allowStrobe: undefined,
+      allowFog: undefined,
+      allowEffect: undefined,
+      audioReactivity: undefined
     });
     expect(snapshot.fetchedAt).toBeInstanceOf(Date);
     expect(api.getLastRead()).toBe(snapshot);
@@ -116,7 +134,13 @@ describe("LiveApi", () => {
       decay: undefined,
       motionSpeed: undefined,
       blackout: undefined,
-      blackoutOnSilence: undefined
+      blackoutOnSilence: undefined,
+      allowBlackout: undefined,
+      allowBlinder: undefined,
+      allowStrobe: undefined,
+      allowFog: undefined,
+      allowEffect: undefined,
+      audioReactivity: undefined
     });
     expect(snapshot.secondary).toEqual({});
     expect(snapshot.tertiary).toEqual({});
@@ -130,7 +154,8 @@ describe("LiveApi", () => {
           excitement: 0.7
         },
         secondaryParams: {
-          intensity: 0.6
+          intensity: 0.6,
+          allowStrobe: true
         }
       }))
     } as never);
@@ -141,5 +166,26 @@ describe("LiveApi", () => {
     expect(snapshot.primary.intensity).toBeUndefined();
     expect(snapshot.secondary.excitement).toBe(0.6);
     expect(snapshot.secondary.intensity).toBe(0.6);
+    expect(snapshot.secondary.allowStrobe).toBe(true);
+  });
+
+  it("provides group convenience lookups", async () => {
+    const api = new LiveApi({
+      getJson: vi.fn(async () => ({
+        params: {
+          patternId: "Still"
+        },
+        secondaryParams: {
+          paletteId: "303"
+        }
+      }))
+    } as never);
+
+    await api.read();
+
+    expect(api.getGroup(1)?.patternId).toBe("Still");
+    expect(api.getPatternId("PRIMARY")).toBe("Still");
+    expect(api.getPaletteId(2)).toBe("303");
+    expect(api.getGroup("invalid")).toBeUndefined();
   });
 });

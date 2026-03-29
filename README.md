@@ -1,6 +1,6 @@
 # lib-maestro-dmx
 
-Node.js-Bibliothek zum Zugriff auf MaestroDMX ueber OSC und show-relevante HTTP-Reads.
+Node.js library for accessing MaestroDMX via OSC and show-relevant HTTP reads.
 
 ## Runtime
 

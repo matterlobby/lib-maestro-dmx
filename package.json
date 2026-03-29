@@ -1,7 +1,7 @@
 {
   "name": "lib-maestro-dmx",
   "version": "1.0.0",
-  "description": "Bibliothek zum Zugriff auf MaestroDMX ueber OSC.",
+  "description": "Node.js library for controlling MaestroDMX via OSC and reading show state via HTTP.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,6 +25,8 @@
     "live-test": "tsx test/live-test.ts",
     "live-test:brightness-latency": "tsx test/brightness-latency-live-test.ts",
     "live-test:notifications": "tsx test/notifications-live-test.ts",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run test && npm run typecheck",
     "sandbox": "tsx test/sandbox-cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -36,7 +38,21 @@
     "typescript": "^5.8.2",
     "vitest": "^4.1.2"
   },
-  "keywords": [],
+  "keywords": [
+    "maestrodmx",
+    "osc",
+    "lighting",
+    "dmx",
+    "nodejs"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/matterlobby/lib-maestrodmx-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/matterlobby/lib-maestrodmx-bridge/issues"
+  },
+  "homepage": "https://github.com/matterlobby/lib-maestrodmx-bridge#readme"
 }

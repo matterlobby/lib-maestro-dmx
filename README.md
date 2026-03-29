@@ -2,6 +2,8 @@
 
 Node.js library for accessing MaestroDMX via OSC and show-relevant HTTP reads.
 
+This version of the library is compatible with MaestroDMX firmware version `1.5.1`.
+
 ## Runtime
 
 This library targets Node.js 24 LTS.

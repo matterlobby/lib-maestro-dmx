@@ -126,7 +126,7 @@ class LiveGroupControlApi {
   /** Sets per-group brightness in the normalized range `0..1`. */
   public async setBrightness(value: number): Promise<void> {
     assertUnitInterval("Brightness", value);
-    await this.oscClient.sendThrottled(this.address("brightness"), { intervalMs: 500 }, oscFloat(value));
+    await this.oscClient.sendThrottled(this.address("brightness"), { intervalMs: 310 }, oscFloat(value));
   }
 
   /** Sets the Maestro pattern excitement parameter in the normalized range `0..1`. */

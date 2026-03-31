@@ -42,7 +42,7 @@ await client.control.show.play();
 The same `read()` / `getLastRead()` pattern is available for the other HTTP reader APIs.
 `client.control` provides typed OSC helpers for the full parameter list published in the MaestroDMX OSC specification.
 Continuous group and global value setters are throttled per OSC address with a leading-and-trailing window.
-Brightness uses 500 ms. The other throttled continuous value setters use 250 ms.
+Global brightness uses 300 ms, group brightness uses 310 ms, and the other throttled continuous value setters use 250 ms.
 Trigger commands and trigger parameter setters are sent immediately without throttling.
 
 ## HTTP Read API

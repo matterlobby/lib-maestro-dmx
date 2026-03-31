@@ -44,7 +44,7 @@ describe("MaestroOscControlApiImpl", () => {
     expect(oscClient.sendThrottled).toHaveBeenNthCalledWith(
       2,
       "/live/1/brightness",
-      { intervalMs: 500 },
+      { intervalMs: 310 },
       oscFloat(0.8)
     );
     expect(oscClient.sendThrottled).toHaveBeenNthCalledWith(3, "/live/1/energy", oscFloat(0.2));

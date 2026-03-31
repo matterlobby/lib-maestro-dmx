@@ -89,8 +89,8 @@ describe("OscClient.sendThrottled", () => {
       const client = new OscClient({ host: "maestro.local", port: 7672 });
       const sendSpy = vi.spyOn(client, "send").mockResolvedValue(undefined);
 
-      await client.sendThrottled("/live/1/brightness", { intervalMs: 500 }, oscFloat(0.1));
-      await client.sendThrottled("/live/2/brightness", { intervalMs: 500 }, oscFloat(0.2));
+      await client.sendThrottled("/live/1/brightness", { intervalMs: 310 }, oscFloat(0.1));
+      await client.sendThrottled("/live/2/brightness", { intervalMs: 310 }, oscFloat(0.2));
       await client.sendThrottled("/global/brightness", { intervalMs: 300 }, oscFloat(0.3));
 
       expect(sendSpy).toHaveBeenCalledTimes(3);
@@ -98,8 +98,8 @@ describe("OscClient.sendThrottled", () => {
       expect(sendSpy).toHaveBeenNthCalledWith(2, "/live/2/brightness", oscFloat(0.2));
       expect(sendSpy).toHaveBeenNthCalledWith(3, "/global/brightness", oscFloat(0.3));
 
-      await client.sendThrottled("/live/1/brightness", { intervalMs: 500 }, oscFloat(0.4));
-      await client.sendThrottled("/live/2/brightness", { intervalMs: 500 }, oscFloat(0.5));
+      await client.sendThrottled("/live/1/brightness", { intervalMs: 310 }, oscFloat(0.4));
+      await client.sendThrottled("/live/2/brightness", { intervalMs: 310 }, oscFloat(0.5));
       await client.sendThrottled("/global/brightness", { intervalMs: 300 }, oscFloat(0.6));
 
       expect(sendSpy).toHaveBeenCalledTimes(3);
@@ -109,7 +109,7 @@ describe("OscClient.sendThrottled", () => {
       expect(sendSpy).toHaveBeenCalledTimes(4);
       expect(sendSpy).toHaveBeenNthCalledWith(4, "/global/brightness", oscFloat(0.6));
 
-      await vi.advanceTimersByTimeAsync(200);
+      await vi.advanceTimersByTimeAsync(10);
 
       expect(sendSpy).toHaveBeenCalledTimes(6);
       expect(sendSpy).toHaveBeenNthCalledWith(5, "/live/1/brightness", oscFloat(0.4));

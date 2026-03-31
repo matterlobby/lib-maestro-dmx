@@ -1,6 +1,6 @@
 {
   "name": "lib-maestro-dmx",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Node.js library for controlling MaestroDMX via OSC and reading show state via HTTP.",
   "type": "module",
   "main": "dist/index.js",
@@ -18,7 +18,9 @@
   },
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

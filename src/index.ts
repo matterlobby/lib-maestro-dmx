@@ -14,6 +14,7 @@ import { OscClient } from "./transport/osc.js";
 import { ShowApi } from "./read/show.js";
 import { ShowStateApi } from "./read/show-state.js";
 import { SystemInfoApi } from "./read/system-info.js";
+import type { OscMessage } from "./transport/osc.js";
 
 const DEFAULT_OSC_PORT = 7672;
 
@@ -59,6 +60,8 @@ export interface MaestroDmxClientOptions {
   protocol?: "http" | "https";
   /** Optional local UDP port to bind the OSC socket to. */
   localOscPort?: number;
+  /** Optional callback for each successfully sent OSC message. */
+  onOscSend?: (message: OscMessage) => void;
 }
 
 /**
@@ -124,7 +127,8 @@ class MaestroDmxClientImpl implements MaestroDmxClient {
     this.osc = new OscClient({
       host: options.host,
       port: DEFAULT_OSC_PORT,
-      localPort: options.localOscPort
+      localPort: options.localOscPort,
+      onSend: options.onOscSend
     });
     this.control = new MaestroOscControlApiImpl(this.osc);
     const httpClient = new HttpClient({

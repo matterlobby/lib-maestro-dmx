@@ -26,6 +26,7 @@ export interface OscClientOptions {
   host: string;
   port: number;
   localPort?: number;
+  onSend?: (message: OscMessage) => void;
 }
 
 interface ThrottledOscSendState {
@@ -179,6 +180,7 @@ export class OscClient {
   private readonly host: string;
   private readonly port: number;
   private readonly localPort?: number;
+  private readonly onSend: ((message: OscMessage) => void) | undefined;
   private readonly throttledSendStates = new Map<string, ThrottledOscSendState>();
   private socket: dgram.Socket | undefined;
 
@@ -186,6 +188,7 @@ export class OscClient {
     this.host = options.host;
     this.port = options.port;
     this.localPort = options.localPort;
+    this.onSend = options.onSend;
   }
 
   /** Returns `true` when the UDP socket has already been created and bound. */
@@ -243,7 +246,8 @@ export class OscClient {
   /** Sends one OSC message immediately. */
   public async send(address: string, ...args: OscArgument[]): Promise<void> {
     const socket = await this.getSocket();
-    const message = encodeOscMessage({ address, args });
+    const oscMessage = { address, args };
+    const message = encodeOscMessage(oscMessage);
 
     await new Promise<void>((resolve, reject) => {
       socket.send(message, this.port, this.host, (error) => {
@@ -252,6 +256,7 @@ export class OscClient {
           return;
         }
 
+        this.onSend?.(oscMessage);
         resolve();
       });
     });
